@@ -1,71 +1,36 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <iomanip>
-using namespace std;
-
-struct Process {
-    int pid, at, bt, rt, ct, tat, wt;
-};
-
+#include <stdio.h>
+typedef struct {
+    int id, at, bt, ft, tat, wt, done;
+} P;
 int main() {
-    int n;
-    cout << "Enter number of processes: ";
-    cin >> n;
-
-    vector<Process> p(n);
+    P p[10];
+    int n, t = 0, done = 0;
+    float twt = 0, ttat = 0;
+    printf("Enter no. of processes: ");
+    scanf("%d", &n);
     for (int i = 0; i < n; i++) {
-        p[i].pid = i + 1;
-        cout << "\nProcess P" << p[i].pid << " Arrival Time: ";
-        cin >> p[i].at;
-        cout << "Burst Time: ";
-        cin >> p[i].bt;
-        p[i].rt = p[i].bt;
+        printf("Enter AT & BT for P%d: ", i + 1);
+        scanf("%d%d", &p[i].at, &p[i].bt);
+        p[i].id = i + 1;
+        p[i].done = 0;
     }
-
-    // Sort by arrival time
-    sort(p.begin(), p.end(), [](auto &a, auto &b){ return a.at < b.at; });
-
-    int completed = 0, time = 0, nprocs = n;
-
-    while (completed < n) {
-        int idx = -1, mn = 1e9;
-
-        // Choose process with minimum remaining time so far
-        for (int i = 0; i < n; i++) {
-            if (p[i].at <= time && p[i].rt > 0 && p[i].rt < mn) {
-                mn = p[i].rt;
-                idx = i;
-            }
-        }
-
-        if (idx == -1) { time++; continue; }
-
-        p[idx].rt--;
-        time++;
-
-        if (p[idx].rt == 0) {
-            p[idx].ct = time;
-            p[idx].tat = p[idx].ct - p[idx].at;
-            p[idx].wt  = p[idx].tat - p[idx].bt;
-            completed++;
-        }
+    while (done < n) {
+        int idx = -1, min = 9999;
+        for (int i = 0; i < n; i++)
+            if (!p[i].done && p[i].at <= t && p[i].bt < min)
+                min = p[i].bt, idx = i;
+        if (idx == -1) { t++; continue; }
+        p[idx].ft = t + p[idx].bt;
+        p[idx].tat = p[idx].ft - p[idx].at;
+        p[idx].wt = p[idx].tat - p[idx].bt;
+        t = p[idx].ft;
+        p[idx].done = 1;
+        done++;
+        twt += p[idx].wt;
+        ttat += p[idx].tat;
     }
-
-    cout << "\n\n=== SJF (Preemptive / SRTF) Results ===\n";
-    cout << "---------------------------------------------\n";
-    cout << "PID  AT  BT  CT  TAT  WT\n";
-    cout << "---------------------------------------------\n";
-
-    float total_tat = 0, total_wt = 0;
-    for (auto &x : p) {
-        cout << x.pid << "   " << x.at << "   " << x.bt 
-             << "   " << x.ct << "   " << x.tat << "    " << x.wt << endl;
-        total_tat += x.tat;
-        total_wt += x.wt;
-    }
-
-    cout << "---------------------------------------------\n";
-    cout << "Avg TAT = " << total_tat / n << endl;
-    cout << "Avg WT  = " << total_wt / n << endl;
+    printf("\nPID\tAT\tBT\tFT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n", p[i].id, p[i].at, p[i].bt, p[i].ft, p[i].tat, p[i].wt);
+    printf("\nAvg WT: %.2f\nAvg TAT: %.2f\n", twt / n, ttat / n);
 }
