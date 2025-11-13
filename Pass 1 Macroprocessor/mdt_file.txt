@@ -1,0 +1,3 @@
+0	MOVER AREG, #0
+1	ADD BREG, #1
+2	MEND
